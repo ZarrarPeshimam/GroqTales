@@ -11,7 +11,53 @@ Active full support: 1.3.9 (latest). Security maintenance (critical fixes only):
 
 ## [1.3.9] - 2026-03-01
 
-### Codebase Optimization & Cleanup
+### Bug Fixes — 2026-03-01
+
+- **Broken Logger Imports**: Fixed `Cannot find module '../lib/logger'` crash in `server/routes/helpbot.js`, `server/routes/feed.js`, and `server/routes/settings/profile.js`. All three files referenced `../lib/logger` (or `../../lib/logger`) but the module lives at `server/utils/logger.js`. Updated import paths accordingly.
+- **Feed Route Error Handling**: Improved `server/routes/feed.js` — added 10s timeout to the CF Worker proxy call, fixed error logging that was printing `undefined` instead of the actual error message, and changed response status from 500 to 502 (Bad Gateway) for upstream failures.
+- **Dead Romance Genre Image**: Replaced `escapetoromance.com` image URL (timing out / unreachable) with a working Unsplash image in `app/page.tsx` and `app/genres/page.tsx`. Removed `escapetoromance.com` from `next.config.js` `remotePatterns`.
+- **Hydration Mismatch Fix**: Fixed React hydration error ("Text content does not match server-rendered HTML") caused by `MadhavaHelpBot` rendering `new Date().toLocaleTimeString()` at module level during SSR. The timestamp was baked into server HTML then differed on the client (e.g. "02:48 PM" vs "02:49 PM"). Fixed by deferring timestamp rendering to client-only with an `isMounted` pattern and `suppressHydrationWarning`. This also resolved the cascading CSS MIME type error that occurred when hydration crashed.
+
+### Swagger API Documentation Overhaul
+
+- **Comprehensive Swagger Coverage**: Added `@swagger` JSDoc annotations to **10 route files** covering **30+ endpoints** that were previously undocumented in the Swagger UI at `/api/docs`.
+  - `server/routes/ai.js` — AI generate and analyze endpoints
+  - `server/routes/feed.js` — Public story feed proxy endpoint
+  - `server/routes/helpbot.js` — MADHAVA AI helpbot chat endpoint
+  - `server/routes/users.js` — 4 user profile endpoints (self, by ID, by wallet, update)
+  - `server/routes/sdk.js` — SDK health and docs endpoints
+  - `server/routes/settings/profile.js` — Profile get/update settings
+  - `server/routes/settings/notifications.js` — Notification preferences get/update
+  - `server/routes/settings/privacy.js` — Privacy settings get/update
+  - `server/routes/settings/wallet.js` — Wallet connection get/update
+- **Expanded Swagger Config** (`server/backend.js`): Added 11 tag groups (Health, Authentication, Stories, AI, Users, Feed, Helpbot, Settings, NFT, Comics, SDK), reusable `Error` and `Pagination` schemas, API contact/license info, and expanded `apis` glob to `['./routes/*.js', './routes/**/*.js', './backend.js']` to include nested `settings/` routes.
+
+### Health Endpoint Improvements
+
+- **Smart No-DB Mode**: Health endpoint (`/api/health`) now reports `healthy` when `MONGODB_URI` is not configured instead of falsely reporting `degraded`. Only shows `degraded` when the DB is configured but the connection failed.
+- **Rich Diagnostics**: Health response now includes uptime, memory usage (RSS, heap), service statuses (API, database, helpbot), and descriptive notes explaining connection state.
+- **Swagger Annotations**: Added `@swagger` JSDoc to `/api/health`, `/api/health/db`, and `/api/health/bot` endpoints.
+
+### Backend & API Routing Fixes
+
+- **Backend Versioning**: Bumped the Render backend API package version to `1.2.0`.
+- **Feed API Endpoint [NEW]**: Added `server/routes/feed.js` to securely proxy requests to the Cloudflare D1 database, resolving persistent `/api/feed` 404 errors on the frontend.
+- **MADHAVA Bot API Proxy [NEW]**: Added `server/routes/helpbot.js` to the Render backend to pass `GROQ_API_KEY` authenticated requests to the Cloudflare Worker, fixing the `/api/helpbot/chat` 405 error. 
+- **DB Health Endpoint Fix**: Fixed `/api/health/db` route resolution resolving a frontend 404.
+- **Bot Health API Endpoint [NEW]**: Implemented `/api/health/bot` on the Render backend to specifically test Groq AI Bot availability.
+- **Cloudflare Story Sync**: Modified `server/routes/stories.js` to automatically proxy new MongoDB story creation payloads to the Cloudflare Worker via `axios.post`, keeping D1 fully synced in real-time.
+
+### Frontend UI & State Enhancements
+
+- **Discover Worlds Fix**: Removed the duplicate mapping block that was causing genres to appear twice in the grid layout.
+- **Trending Stories Error State**: Suppressed the scary "Something Went Wrong: 404" block for empty feed arrays. It now correctly shows a friendly "No Stories Yet" CTA until stories are created. Real 5xx errors still trigger the error block.
+- **Dynamic AI Health Status**: The Footer "Groq AI" label and MADHAVA Help Bot now check real backend health routes before displaying "System Operational" or "System Offline," preventing false marketing claims when services are down.
+- **Create Story CTA Redirect**: Updated the "Start Creating" buttons to navigate directly to `/create/ai-story` (the active creator form) instead of the empty layout wrapper at `/create`.
+- **Profile D1 Sync**: Enhanced `profile-form.tsx` to push essential profile fields (Avatar, Username) to the Cloudflare Worker (`/api/profiles`) immediately after saving to Supabase. This ensures feed items sourced from Cloudflare D1 reflect real-time profile data.
+- **Dual DB Profile Sync**: Upgraded `profile-form.tsx` to explicitly upsert profile changes into the Supabase PostgREST `profiles` table in addition to Auth and Cloudflare, ensuring comprehensive global consistency.
+- **Navigation UX**: Moved the "Top Creators" link from the Main Navigation Header to the Footer section under Explore.
+- **Bot Health UI Polling**: Updated the frontend Helpbot (`components/madhava-helpbot.tsx`) to poll the specific bot health route.
+- **Service Worker Patch**: Created a minimal `public/sw.js` to intercept frontend PWA registration attempts gracefully, preventing browser console 404 logs.
 
 #### Deleted — Unnecessary Files & Directories
 

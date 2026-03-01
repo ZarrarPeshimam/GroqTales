@@ -91,13 +91,40 @@ export function ProfileForm() {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData?.session?.access_token;
+
+      // 1. Update Supabase Auth metadata
+      await supabase.auth.updateUser({
+        data: {
+          name: data.displayName,
+          username: data.username,
+          bio: data.bio,
+          website: data.website,
+          location: data.location,
+          primaryGenre: data.primaryGenre
+        }
+      });
+
+      // 1.5 Update Supabase Database (Profiles Table)
+      if (sessionData?.session?.user?.id) {
+        await supabase.from('profiles').upsert({
+          id: sessionData.session.user.id,
+          username: data.username,
+          full_name: data.displayName,
+          avatar_url: avatarUrl,
+          bio: data.bio,
+          website: data.website,
+          updated_at: new Date().toISOString(),
+        });
+      }
+
+      // 2. Sync to Render backend (which proxies to Mongo and CF D1)
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/settings/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, avatarUrl }),
       });
 
       if (!res.ok) throw new Error("Failed to update profile");

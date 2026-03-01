@@ -32,7 +32,7 @@ export function Footer({ version }: { version?: string }) {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/health/db`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          setHealthStatus(data.status === 'ok' ? 'ok' : data.status === 'degraded' ? 'degraded' : 'down');
+          setHealthStatus((data.status === 'ok' || data.status === 'healthy') ? 'ok' : data.status === 'degraded' ? 'degraded' : 'down');
         } else {
           setHealthStatus('down');
         }
@@ -116,6 +116,7 @@ export function Footer({ version }: { version?: string }) {
                 {[
                   { href: '/genres', label: 'Genres' },
                   { href: '/community', label: 'Community' },
+                  { href: '/community/creators', label: 'Top Creators' },
                   { href: '/create', label: 'Create Story' },
                   { href: '/nft-gallery', label: 'NFT Gallery' },
                   { href: '/nft-marketplace', label: 'Marketplace' },

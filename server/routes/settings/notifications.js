@@ -1,58 +1,143 @@
 const router = require("express").Router();
-const {authRequired :requireAuth} = require("../../middleware/auth");
+const { authRequired: requireAuth } = require("../../middleware/auth");
 
-router.get("/", requireAuth, async(req, res) =>{
+/**
+ * @swagger
+ * /api/v1/settings/notifications:
+ *   get:
+ *     tags:
+ *       - Settings
+ *     summary: Get notification settings
+ *     description: Returns the authenticated user's notification preferences (email, push, comments, likes, follows).
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Notification settings retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: boolean
+ *                     push:
+ *                       type: boolean
+ *                     sms:
+ *                       type: boolean
+ *                     marketing:
+ *                       type: boolean
+ *                     updates:
+ *                       type: boolean
+ *                     comments:
+ *                       type: boolean
+ *                     likes:
+ *                       type: boolean
+ *                     follows:
+ *                       type: boolean
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ *   put:
+ *     tags:
+ *       - Settings
+ *     summary: Update notification settings
+ *     description: Updates notification preferences. All fields are optional booleans.
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: boolean
+ *               push:
+ *                 type: boolean
+ *               comments:
+ *                 type: boolean
+ *               likes:
+ *                 type: boolean
+ *               follows:
+ *                 type: boolean
+ *     responses:
+ *       200:
+ *         description: Notification settings updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *       401:
+ *         description: Unauthorized.
+ *       500:
+ *         description: Internal server error.
+ */
+
+router.get("/", requireAuth, async (req, res) => {
     try {
         const settings = req.user.notificationSettings;
-    
-    return res.json({
-        success: true,
-        data: {
-            email: settings.email.platform ?? false,
-            push : settings.inApp.messages ?? false,
-            sms: false,
-            marketing : settings.email.platform ?? false,
-            updates : settings.email.platform ?? false,
-            comments : settings.email.comments ?? false,
-            likes : settings.email.likes ?? false,
-            follows : settings.email.followers ?? false,
-            
-            // likes: req.user.notificationSettings.email.likes,
-            // followers: req.user.notificationSettings.email.followers,
-            // nftSales: req.user.notificationSettings.email.nftSales,
-            // platform: req.user.notificationSettings.email.platform,
-        
-        // inApp: {
-        //     comments: req.user.notificationSettings.inApp.comments,
-        //     likes: req.user.notificationSettings.inApp.likes,
-        //     followers: req.user.notificationSettings.inApp.follwers,
-        //     messages: req.user.notificationSettings.inApp.messages,
-        // },
-    },  
-});
-} catch(err){
-    console.log("Fetch notification settings failed:", err);
-    res.status(500).json({
-        success: false,
-        error: {message: "Failed to fetch notification settings"},
-    });
-}
+
+        return res.json({
+            success: true,
+            data: {
+                email: settings.email.platform ?? false,
+                push: settings.inApp.messages ?? false,
+                sms: false,
+                marketing: settings.email.platform ?? false,
+                updates: settings.email.platform ?? false,
+                comments: settings.email.comments ?? false,
+                likes: settings.email.likes ?? false,
+                follows: settings.email.followers ?? false,
+
+                // likes: req.user.notificationSettings.email.likes,
+                // followers: req.user.notificationSettings.email.followers,
+                // nftSales: req.user.notificationSettings.email.nftSales,
+                // platform: req.user.notificationSettings.email.platform,
+
+                // inApp: {
+                //     comments: req.user.notificationSettings.inApp.comments,
+                //     likes: req.user.notificationSettings.inApp.likes,
+                //     followers: req.user.notificationSettings.inApp.follwers,
+                //     messages: req.user.notificationSettings.inApp.messages,
+                // },
+            },
+        });
+    } catch (err) {
+        console.log("Fetch notification settings failed:", err);
+        res.status(500).json({
+            success: false,
+            error: { message: "Failed to fetch notification settings" },
+        });
+    }
 });
 
-router.put("/", requireAuth, async(req, res)=>{
+router.put("/", requireAuth, async (req, res) => {
     try {
-        const {email, push, comments, likes, follows,} = req.body;
+        const { email, push, comments, likes, follows, } = req.body;
         //const current = req.user.notificationSettings;
-        
-        if(typeof comments === "boolean")
+
+        if (typeof comments === "boolean")
             req.user.notificationSettings.email.comments = comments;
-        if(typeof likes === "boolean")
+        if (typeof likes === "boolean")
             req.user.notificationSettings.email.likes = likes;
-        if(typeof follows === "boolean")
+        if (typeof follows === "boolean")
             req.user.notificationSettings.email.followers = follows;
-        if(typeof email === "boolean")
+        if (typeof email === "boolean")
             req.user.notificationSettings.email.platform = email;
-        if(typeof push === "boolean")
+        if (typeof push === "boolean")
             req.user.notificationSettings.inApp.messages = push;
 
         await req.user.save();
@@ -66,16 +151,15 @@ router.put("/", requireAuth, async(req, res)=>{
                 follows: req.user.notificationSettings.email.followers,
 
             },
-    });
+        });
     } catch (err) {
         console.error("Notification settings update failed:", err);
         res.status(500).json({
             success: false,
-            error: {message: "Failed to update notification settings"},
-    });
+            error: { message: "Failed to update notification settings" },
+        });
     }
 });
 
 
 module.exports = router;
-   

@@ -107,12 +107,6 @@ export function Header() {
   const navItems: NavItem[] = [
     { type: 'link', href: '/genres', label: 'Genres' },
     { type: 'link', href: '/community', label: 'Community Hub' },
-    {
-      type: 'link',
-      href: '/community/creators',
-      label: 'Top Creators',
-      icon: <Trophy className="h-4 w-4 mr-1.5 text-emerald-400" />,
-    },
     { type: 'link', href: '/nft-gallery', label: 'NFT Gallery' },
     { type: 'link', href: '/nft-marketplace', label: 'NFT Marketplace' },
     ...(account
@@ -153,6 +147,7 @@ export function Header() {
                 src="/logo.png"
                 alt="GroqTales Logo"
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-contain drop-shadow-lg"
                 priority
               />
@@ -269,6 +264,7 @@ export function Header() {
                         src="/logo.png"
                         alt="Logo"
                         fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
                         className="object-contain"
                       />
                     </div>

@@ -160,7 +160,7 @@ export default function Home() {
     { name: 'Science Fiction', image: 'https://ik.imagekit.io/panmac/tr:f-auto,w-740,pr-true//bcd02f72-b50c-0179-8b4b-5e44f5340bd4/175e79ee-ed99-45d5-846f-5af0be2ab75b/sub%20genre%20guide.webp', color: 'from-cyan-500 to-blue-600' },
     { name: 'Fantasy', image: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhv_45322WkBmu9o8IvYfcxEXDTbGzORCAgwdP0OF1Zq4izhDr6PT-bkqYj0BJJ_HP02Op2Y0vrNOQlN6tuf0cnu4GwWqprIJrcn89pYY6uiu89gXLr5UXIZ3h6-2HWvO-SjaqzeMRoiXk/s1600/latest.jpg', color: 'from-purple-500 to-indigo-600' },
     { name: 'Mystery', image: 'https://celadonbooks.com/wp-content/uploads/2020/03/what-is-a-mystery.jpg', color: 'from-slate-700 to-slate-900' },
-    { name: 'Romance', image: 'https://escapetoromance.com/wp-content/uploads/sites/172/2017/05/iStock-503130452.jpg', color: 'from-pink-500 to-rose-600' },
+    { name: 'Romance', image: 'https://images.unsplash.com/photo-1474552226712-ac0f0961a954?w=600&q=80', color: 'from-pink-500 to-rose-600' },
     { name: 'Horror', image: 'https://www.nyfa.edu/wp-content/uploads/2022/11/nosferatu.jpg', color: 'from-red-700 to-red-950' },
     { name: 'Adventure', image: 'https://images.unsplash.com/photo-1682687220742-aba13b6e50ba?w=600&q=80', color: 'from-amber-500 to-orange-600' },
     { name: 'Historical Fiction', image: 'https://celadonbooks.com/wp-content/uploads/2020/03/Historical-Fiction-scaled.jpg', color: 'from-yellow-700 to-yellow-900' },

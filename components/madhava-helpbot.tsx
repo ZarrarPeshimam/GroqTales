@@ -17,22 +17,48 @@ const API_URL =
     : undefined) ?? '';
 const HELPBOT_ENDPOINT = `${API_URL}/api/helpbot/chat`;
 
-const WELCOME_MESSAGE: ChatMessage = {
-  id: 'welcome',
-  role: 'assistant',
-  content:
-    "Hey there! 👋 I'm **MADHAVA**, your GroqTales help bot. Ask me anything about creating stories, minting NFTs, wallet setup, troubleshooting, or the platform in general!",
-  timestamp: new Date(),
-};
+const WELCOME_MESSAGE_CONTENT =
+  "Hey there! 👋 I'm **MADHAVA**, your GroqTales help bot. Ask me anything about creating stories, minting NFTs, wallet setup, troubleshooting, or the platform in general!";
 
 // ── Component ───────────────────────────────────────────────────────
 export default function MadhavaHelpBot() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGE]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: WELCOME_MESSAGE_CONTENT,
+      timestamp: new Date(),
+    },
+  ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Mark as mounted so timestamps are only rendered client-side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Poll health status
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/health/bot`, { cache: 'no-store' });
+        const data = await res.json();
+        // Allow ok, healthy, or degraded (still online)
+        setIsOnline(data.status !== 'down');
+      } catch {
+        setIsOnline(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -110,7 +136,14 @@ export default function MadhavaHelpBot() {
   };
 
   const clearChat = () => {
-    setMessages([WELCOME_MESSAGE]);
+    setMessages([
+      {
+        id: 'welcome',
+        role: 'assistant',
+        content: WELCOME_MESSAGE_CONTENT,
+        timestamp: new Date(),
+      },
+    ]);
   };
 
   // ── Render ──────────────────────────────────────────────────────
@@ -153,8 +186,8 @@ export default function MadhavaHelpBot() {
             <div>
               <h3 className="madhava-header__title">MADHAVA Help Bot</h3>
               <span className="madhava-header__status">
-                <span className="madhava-status-dot" />
-                Online
+                <span className={`madhava-status-dot ${isOnline ? '' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)] animate-none'}`} style={!isOnline ? { background: '#ef4444' } : {}} />
+                {isOnline ? 'Online' : 'Offline'}
               </span>
             </div>
           </div>
@@ -199,11 +232,13 @@ export default function MadhavaHelpBot() {
                   </React.Fragment>
                 ))}
               </div>
-              <time className="madhava-bubble__time">
-                {msg.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+              <time className="madhava-bubble__time" suppressHydrationWarning>
+                {isMounted
+                  ? msg.timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : '\u00A0'}
               </time>
             </div>
           ))}
@@ -230,15 +265,15 @@ export default function MadhavaHelpBot() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask me anything about GroqTales…"
+            placeholder={isOnline ? "Ask me anything about GroqTales…" : "Service unavailable"}
             className="madhava-input"
-            disabled={isLoading}
+            disabled={isLoading || !isOnline}
             maxLength={2000}
             aria-label="Type your message"
           />
           <button
             onClick={sendMessage}
-            disabled={isLoading || !input.trim()}
+            disabled={isLoading || !isOnline || !input.trim()}
             className="madhava-send"
             aria-label="Send message"
           >

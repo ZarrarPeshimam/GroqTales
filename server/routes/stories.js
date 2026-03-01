@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const Story = require('../models/Story');
 const { authRequired } = require('../middleware/auth');
+const axios = require('axios');
 
 /**
  * @swagger
@@ -151,6 +152,27 @@ router.post('/create', authRequired, async (req, res) => {
     });
 
     await story.save();
+
+    // Synchronize to Cloudflare D1 database
+    try {
+      const workerUrl = process.env.CF_WORKER_URL || 'https://groqtales-backend.groqtales.workers.dev';
+      // req.user.id or req.user.sub depending on JWT issuer
+      const authorId = req.user.sub || req.user.id;
+
+      await axios.post(`${workerUrl}/api/stories`, {
+        title,
+        content,
+        genre: [genre], // assuming D1 expects tags/genres as array maybe
+      }, {
+        headers: {
+          'Authorization': `Bearer ${authorId}`
+        }
+      });
+    } catch (cfError) {
+      console.error('Failed to sync story to Cloudflare DB:', cfError.message);
+      // We don't throw here to ensure Mongo save isn't rolled back since it succeeded, 
+      // but in a robust system this could be handled with a message queue.
+    }
 
     return res.status(201).json(story);
   } catch (error) {

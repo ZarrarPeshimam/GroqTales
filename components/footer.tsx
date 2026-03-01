@@ -29,7 +29,7 @@ export function Footer({ version }: { version?: string }) {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/health/db`, { cache: 'no-store' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/health`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           setHealthStatus((data.status === 'ok' || data.status === 'healthy') ? 'ok' : data.status === 'degraded' ? 'degraded' : 'down');
@@ -222,12 +222,12 @@ export function Footer({ version }: { version?: string }) {
             <div className="flex items-center gap-2 bg-white/5 px-3 py-1.5 border border-white/10 rounded-full">
               <span
                 className={`w-1.5 h-1.5 rounded-full ${healthStatus === 'ok'
-                    ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse'
-                    : healthStatus === 'degraded'
-                      ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse'
-                      : healthStatus === 'down'
-                        ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
-                        : 'bg-white/30'
+                  ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse'
+                  : healthStatus === 'degraded'
+                    ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.8)] animate-pulse'
+                    : healthStatus === 'down'
+                      ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]'
+                      : 'bg-white/30'
                   }`}
               />
               <span className="text-xs font-medium text-white/50 tracking-wider uppercase">

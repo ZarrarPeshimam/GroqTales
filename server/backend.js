@@ -51,8 +51,8 @@ const options = {
     },
     servers: [
       {
-        url: process.env.URL || 'http://localhost:' + PORT + '/',
-        description: process.env.NODE_ENV === 'production' ? 'Production Server' : 'Development Server',
+        url: process.env.PROD_URL || 'https://groqtales-backend-api.onrender.com/api',
+        description: 'Production',
       },
     ],
     tags: [
@@ -148,7 +148,7 @@ app.use(
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'https://groqtales.xyz',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
@@ -338,6 +338,10 @@ app.get('/api/health/bot', (req, res) => {
   });
 });
 
+// Database health endpoint handled by ['/api/health', '/api/health/db'] above
+
+// Bot health endpoint handled by /api/health/bot above
+
 // Root welcome endpoint
 app.get('/', (req, res) => {
   res.json({
@@ -355,8 +359,12 @@ app.use('/api/v1/stories', require('./routes/stories'));
 app.use('/api/v1/comics', require('./routes/comics'));
 app.use('/api/v1/nft', require('./routes/nft'));
 app.use('/api/v1/users', require('./routes/users'));
+app.use('/api/helpbot', require('./routes/helpbot'));
 
 app.use('/api/feed', require('./routes/feed'));
+
+// Helpbot routes (using either /api/v1/helpbot or /api/helpbot)
+// Maintaining both per existing logic but removing the duplicate
 app.use('/api/helpbot', require('./routes/helpbot'));
 app.use('/api/v1/helpbot', require('./routes/helpbot'));
 
@@ -430,7 +438,7 @@ connectDB(DB_MAX_RETRIES, DB_RETRY_DELAY_MS)
     server = app.listen(PORT, () => {
       logger.info(`GroqTales Backend API server running on port ${PORT}`);
       logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      logger.info(`Health check: http://localhost:${PORT}/api/health`);
+      logger.info(`Health check: ${process.env.PROD_URL || 'http://localhost:' + PORT}/api/health`);
     });
   })
   .catch((err) => {
@@ -444,7 +452,7 @@ connectDB(DB_MAX_RETRIES, DB_RETRY_DELAY_MS)
           `GroqTales Backend API server running on port ${PORT} (NO DATABASE)`
         );
         console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-        console.log(`Health check: http://localhost:${PORT}/api/health`);
+        console.log(`Health check: ${process.env.PROD_URL || 'http://localhost:' + PORT}/api/health`);
       });
     } else {
       process.exit(1);

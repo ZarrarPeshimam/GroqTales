@@ -45,7 +45,12 @@ async function seed() {
 
     // Clear existing seed data
     console.log('Clearing old seed data...');
-    await db.collection('users').deleteMany({ email: { $regex: /@groqtales\.xyz$/ } });
+    const oldSeedUsers = await db.collection('users').find({ email: { $regex: /@groqtales\\.xyz$/ } }).toArray();
+    const oldSeedUserIds = oldSeedUsers.map((u) => u._id);
+    if (oldSeedUserIds.length > 0) {
+      await db.collection('stories').deleteMany({ author: { $in: oldSeedUserIds } });
+      await db.collection('users').deleteMany({ _id: { $in: oldSeedUserIds } });
+    }
 
     // Insert users
     console.log('Seeding 10 users...');
@@ -59,10 +64,6 @@ async function seed() {
       });
       insertedUsers.push({ ...u, _id: result.insertedId });
     }
-
-    // Delete old seeded stories
-    const seedUserIds = insertedUsers.map((u) => u._id);
-    await db.collection('stories').deleteMany({ author: { $in: seedUserIds } });
 
     // Insert stories linked to users
     console.log('Seeding 10 stories...');

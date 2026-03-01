@@ -5,7 +5,22 @@ type Bindings = {
     KV: KVNamespace;
 };
 
-const feeds = new Hono<{ Bindings: Bindings }>();
+const feeds = new Hono<{ Bindings: Bindings, Variables: { user: { id: string } } }>();
+
+// Auth middleware for notifications
+feeds.use('/notifications/*', async (c, next) => {
+    const authHeader = c.req.header('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return c.json({ error: 'Unauthorized: Missing or invalid token' }, 401);
+    }
+    const token = authHeader.split(' ')[1];
+    const userId = token; // temporary simple decode
+
+    if (!userId) return c.json({ error: 'Unauthorized: Invalid session' }, 401);
+
+    c.set('user', { id: userId });
+    await next();
+});
 
 /**
  * GET /api/feeds/trending?period=daily|weekly|alltime&limit=20
@@ -13,7 +28,9 @@ const feeds = new Hono<{ Bindings: Bindings }>();
  */
 feeds.get('/trending', async (c) => {
     const period = c.req.query('period') || 'daily';
-    const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 50);
+    let parsedLimit = parseInt(c.req.query('limit') || '20', 10);
+    if (isNaN(parsedLimit) || parsedLimit < 1) parsedLimit = 20;
+    const limit = Math.min(parsedLimit, 50);
 
     try {
         const rows = await c.env.DB.prepare(`
@@ -55,16 +72,24 @@ feeds.get('/trending', async (c) => {
  * Returns a user's notifications.
  */
 feeds.get('/notifications/:userId', async (c) => {
-    const userId = c.req.param('userId');
+    const requestedUserId = c.req.param('userId');
+    const authUser = c.get('user');
+
+    if (!authUser || authUser.id !== requestedUserId) {
+        return c.json({ error: 'Forbidden: Cannot access other users notifications' }, 403);
+    }
+
     const unreadOnly = c.req.query('unread') === 'true';
-    const limit = Math.min(parseInt(c.req.query('limit') || '30', 10), 100);
+    let parsedLimit = parseInt(c.req.query('limit') || '30', 10);
+    if (isNaN(parsedLimit) || parsedLimit < 1) parsedLimit = 30;
+    const limit = Math.min(parsedLimit, 50);
 
     try {
         let query = `
             SELECT * FROM notifications
             WHERE user_id = ?
         `;
-        const bindings: any[] = [userId];
+        const bindings: any[] = [requestedUserId];
 
         if (unreadOnly) {
             query += ` AND read = 0`;
@@ -90,12 +115,24 @@ feeds.get('/notifications/:userId', async (c) => {
  * Mark a single notification as read.
  */
 feeds.post('/notifications/:id/read', async (c) => {
+    const authUser = c.get('user');
     const id = c.req.param('id');
 
+    if (!authUser) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
+
     try {
-        await c.env.DB.prepare(`UPDATE notifications SET read = 1 WHERE id = ?`)
-            .bind(id)
+        const result = await c.env.DB.prepare(
+            `UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?`
+        )
+            .bind(id, authUser.id)
             .run();
+
+        if (result.meta?.changes === 0) {
+            return c.json({ error: 'Forbidden or not found' }, 403);
+        }
+
         return c.json({ success: true });
     } catch (error: any) {
         return c.json({ success: false, error: error.message }, 500);
@@ -107,13 +144,14 @@ feeds.post('/notifications/:id/read', async (c) => {
  * Mark all of a user's notifications as read.
  */
 feeds.post('/notifications/mark-all-read', async (c) => {
-    try {
-        const body = await c.req.json();
-        const userId = body?.userId;
-        if (!userId) return c.json({ error: 'userId required' }, 400);
+    const authUser = c.get('user');
+    if (!authUser) {
+        return c.json({ error: 'Unauthorized' }, 401);
+    }
 
+    try {
         await c.env.DB.prepare(`UPDATE notifications SET read = 1 WHERE user_id = ?`)
-            .bind(userId)
+            .bind(authUser.id)
             .run();
         return c.json({ success: true });
     } catch (error: any) {

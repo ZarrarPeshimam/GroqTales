@@ -53,12 +53,18 @@ export async function fetchTrending(
 
 export async function fetchNotifications(
     userId: string,
+    token: string,
     unreadOnly = false,
     limit = 30,
 ): Promise<Notification[]> {
     try {
         const res = await fetch(
             `${feedsBase()}/api/feeds/notifications/${userId}?unread=${unreadOnly}&limit=${limit}`,
+            {
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+            }
         );
         if (!res.ok) return [];
         const json = await res.json();
@@ -68,10 +74,14 @@ export async function fetchNotifications(
     }
 }
 
-export async function markNotificationRead(id: string): Promise<boolean> {
+export async function markNotificationRead(id: string, token: string): Promise<boolean> {
+    if (!token) throw new Error('Authentication token required');
     try {
         const res = await fetch(`${feedsBase()}/api/feeds/notifications/${id}/read`, {
             method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
         });
         return res.ok;
     } catch {
@@ -79,12 +89,16 @@ export async function markNotificationRead(id: string): Promise<boolean> {
     }
 }
 
-export async function markAllNotificationsRead(userId: string): Promise<boolean> {
+export async function markAllNotificationsRead(token: string): Promise<boolean> {
+    if (!token) throw new Error('Authentication token required');
     try {
         const res = await fetch(`${feedsBase()}/api/feeds/notifications/mark-all-read`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId }),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({}), // Empty body, the user is identified via the backend's token validation
         });
         return res.ok;
     } catch {

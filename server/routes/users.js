@@ -73,7 +73,7 @@ router.get('/profile', authRequired, async (req, res) => {
       .lean();
     if (!profile) return res.status(404).json({ success: false, error: 'Profile not found' });
 
-    const stories = await Story.find({ author: profile._id })
+    const stories = await Story.find({ author: profile._id, moderationStatus: 'approved' })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -175,7 +175,7 @@ router.get('/profile/id/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const stories = await Story.find({ author: user._id })
+    const stories = await Story.find({ author: user._id, moderationStatus: 'approved' })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -202,15 +202,16 @@ router.get('/profile/username/:username', async (req, res) => {
   try {
     const { username } = req.params;
 
+    // Intentionally exclude email, wallet, walletAddress for public responses
     const user = await User.findOne({ username })
-      .select('username bio avatar badges firstName lastName wallet walletAddress email socialLinks createdAt')
+      .select('username bio avatar badges firstName lastName socialLinks createdAt')
       .lean();
 
     if (!user) {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
 
-    const stories = await Story.find({ author: user._id })
+    const stories = await Story.find({ author: user._id, moderationStatus: 'approved' })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -300,7 +301,7 @@ router.get('/profile/:walletAddress', async (req, res) => {
       .select('username bio avatar badges firstName lastName wallet createdAt')
       .lean();
 
-    const stories = await Story.find({ author: user._id })
+    const stories = await Story.find({ author: user._id, moderationStatus: 'approved' })
       .sort({ createdAt: -1 })
       .lean();
     return res.json({

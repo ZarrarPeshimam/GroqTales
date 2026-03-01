@@ -21,10 +21,10 @@ export async function apiFetch<T = unknown>(
 ): Promise<{ ok: boolean; status: number; data: T }> {
     const url = `${API_BASE_URL}${path}`;
 
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-        ...(init?.headers ?? {}),
-    };
+    const headers = new Headers(init?.headers);
+    if (!headers.has('Content-Type') && !(init?.body instanceof FormData)) {
+        headers.set('Content-Type', 'application/json');
+    }
 
     const res = await fetch(url, { ...init, headers });
 

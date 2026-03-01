@@ -77,11 +77,24 @@ router.get('/', async (req, res) => {
     const { page = 1, limit = 10, genre, author, status } = req.query;
     const query = {};
 
-    if (genre) query.genre = genre;
-    if (author) query.author = author;
-    // If status is explicitly provided, filter by it; otherwise default to 'approved'
-    if (status) {
-      query.moderationStatus = status;
+    if (genre) query.genre = String(genre);
+    if (author) query.author = String(author);
+    // Check if user is authenticated admin to allow status override
+    let isAdmin = false;
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+    if (token) {
+      try {
+        const { verifyAccessToken } = require('../utils/jwt.js');
+        const decoded = verifyAccessToken(token);
+        if (decoded && decoded.role === 'admin') {
+          isAdmin = true;
+        }
+      } catch (err) { }
+    }
+
+    if (isAdmin && status && ['pending', 'approved', 'rejected'].includes(String(status))) {
+      query.moderationStatus = String(status);
     } else {
       query.moderationStatus = 'approved';
     }
@@ -292,12 +305,20 @@ router.patch('/:id/moderate', authRequired, async (req, res) => {
       return res.status(400).json({ error: 'Status must be approved or rejected' });
     }
 
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ error: 'Invalid id' });
+    }
+
+    // Coerce notes to string to prevent NoSQL injection via object payloads
+    const sanitizedNotes = typeof notes === 'string' ? notes.slice(0, 2000) : '';
+
     const story = await Story.findByIdAndUpdate(
       req.params.id,
       {
         moderationStatus: status,
         moderatorId: req.user.id,
-        moderationNotes: notes || '',
+        moderationNotes: sanitizedNotes,
       },
       { new: true }
     ).lean();

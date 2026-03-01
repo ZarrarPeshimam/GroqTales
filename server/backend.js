@@ -338,27 +338,9 @@ app.get('/api/health/bot', (req, res) => {
   });
 });
 
-// Database health endpoint
-app.get('/api/health/db', (req, res) => {
-  const readyState = mongoose.connection.readyState;
-  const connected = readyState === 1;
-  res.status(connected ? 200 : 503).json({
-    status: connected ? 'connected' : 'disconnected',
-    connected,
-    readyState,
-    timestamp: new Date().toISOString(),
-  });
-});
+// Database health endpoint handled by ['/api/health', '/api/health/db'] above
 
-// Bot health endpoint
-app.get('/api/health/bot', (req, res) => {
-  const hasGroqKey = !!process.env.GROQ_API_KEY;
-  res.json({
-    status: hasGroqKey ? 'online' : 'degraded',
-    available: hasGroqKey,
-    timestamp: new Date().toISOString(),
-  });
-});
+// Bot health endpoint handled by /api/health/bot above
 
 // Root welcome endpoint
 app.get('/', (req, res) => {
@@ -380,6 +362,9 @@ app.use('/api/v1/users', require('./routes/users'));
 app.use('/api/helpbot', require('./routes/helpbot'));
 
 app.use('/api/feed', require('./routes/feed'));
+
+// Helpbot routes (using either /api/v1/helpbot or /api/helpbot)
+// Maintaining both per existing logic but removing the duplicate
 app.use('/api/helpbot', require('./routes/helpbot'));
 app.use('/api/v1/helpbot', require('./routes/helpbot'));
 

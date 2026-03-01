@@ -47,4 +47,11 @@ const StorySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 }, { timestamps: true }); // Automatically adds updatedAt
 
+StorySchema.pre('save', function (next) {
+  if (['approved', 'rejected'].includes(this.moderationStatus) && !this.moderatorId) {
+    return next(new Error('moderatorId is required when moderationStatus is approved or rejected'));
+  }
+  next();
+});
+
 module.exports = mongoose.model('Story', StorySchema);

@@ -88,19 +88,21 @@ const { authRequired: requireAuth } = require("../../middleware/auth");
 
 router.get("/", requireAuth, async (req, res) => {
     try {
-        const settings = req.user.notificationSettings;
+        const settings = req.user.notificationSettings || {};
+        const emailSettings = settings.email || {};
+        const inAppSettings = settings.inApp || {};
 
         return res.json({
             success: true,
             data: {
-                email: settings.email.platform ?? false,
-                push: settings.inApp.messages ?? false,
+                email: emailSettings.platform ?? false,
+                push: inAppSettings.messages ?? false,
                 sms: false,
-                marketing: settings.email.platform ?? false,
-                updates: settings.email.platform ?? false,
-                comments: settings.email.comments ?? false,
-                likes: settings.email.likes ?? false,
-                follows: settings.email.followers ?? false,
+                marketing: emailSettings.platform ?? false,
+                updates: emailSettings.platform ?? false,
+                comments: emailSettings.comments ?? false,
+                likes: emailSettings.likes ?? false,
+                follows: emailSettings.followers ?? false,
 
                 // likes: req.user.notificationSettings.email.likes,
                 // followers: req.user.notificationSettings.email.followers,
@@ -127,7 +129,11 @@ router.get("/", requireAuth, async (req, res) => {
 router.put("/", requireAuth, async (req, res) => {
     try {
         const { email, push, comments, likes, follows, } = req.body;
-        //const current = req.user.notificationSettings;
+
+        // Ensure notificationSettings subdocs exist
+        if (!req.user.notificationSettings) req.user.notificationSettings = {};
+        if (!req.user.notificationSettings.email) req.user.notificationSettings.email = {};
+        if (!req.user.notificationSettings.inApp) req.user.notificationSettings.inApp = {};
 
         if (typeof comments === "boolean")
             req.user.notificationSettings.email.comments = comments;

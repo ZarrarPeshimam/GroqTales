@@ -11,6 +11,10 @@ Active full support: 1.3.9 (latest). Security maintenance (critical fixes only):
 
 ## [1.3.9] - 2026-03-01
 
+### Core Infrastructure
+
+- Implement core application structure, API routes, UI components, and Cloudflare Worker for GroqTales.
+
 ### Backend Integration & Production Config
 
 #### Backend API Wiring

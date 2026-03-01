@@ -20,6 +20,7 @@ import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
 
 import { AdminLoginModal } from './admin-login-modal';
+import { UploadStoryTrigger } from './upload-story-trigger';
 
 export function Footer({ version }: { version?: string }) {
   const currentYear = new Date().getFullYear();
@@ -118,17 +119,22 @@ export function Footer({ version }: { version?: string }) {
                   { href: '/community', label: 'Community' },
                   { href: '/community/creators', label: 'Top Creators' },
                   { href: '/create', label: 'Create Story' },
+                  { href: '#', label: 'Upload Story', isUpload: true },
                   { href: '/nft-gallery', label: 'NFT Gallery' },
                   { href: '/nft-marketplace', label: 'Marketplace' },
                 ].map((link) => (
-                  <li key={link.href}>
-                    <Link
-                      href={link.href}
-                      className="group relative inline-flex items-center text-sm font-medium text-white/60 hover:text-white transition-colors duration-300"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity absolute -left-3" />
-                      {link.label}
-                    </Link>
+                  <li key={link.label}>
+                    {link.isUpload ? (
+                      <UploadStoryTrigger variant="ghost" className="p-0 h-auto font-medium text-white/60 hover:text-white" buttonText="Upload Story" icon={false} />
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="group relative inline-flex items-center text-sm font-medium text-white/60 hover:text-white transition-colors duration-300"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity absolute -left-3" />
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>

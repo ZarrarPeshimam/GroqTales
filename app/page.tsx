@@ -22,6 +22,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useWeb3 } from '@/components/providers/web3-provider';
 import { TrendingStories } from '@/components/trending-stories';
 import { Button } from '@/components/ui/button';
+import { UploadStoryTrigger } from '@/components/upload-story-trigger';
 import { cn } from '@/lib/utils';
 
 // --- Typewriter Hook ---
@@ -281,176 +282,135 @@ export default function Home() {
                   </span>
                 </Link>
               </Button>
+              <UploadStoryTrigger variant="outline" className="h-16 px-10 rounded-full font-bold text-lg border-white/20 hover:bg-white/10 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]" buttonText="Upload Existing Story" icon={false} />
             </motion.div>
           </motion.div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════
-          PATH TO CREATION (Interactive Timeline)
+          PATH TO CREATION (Bento Box Layout)
           ═══════════════════════════════════════ */}
-      <section className="relative py-32 border-t border-white/5 bg-zinc-950 overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-500/5 rounded-full blur-[150px] pointer-events-none" />
-
-        <div className="container mx-auto px-6 max-w-6xl relative z-10">
+      <section className="relative py-32 bg-black border-t border-white/5">
+        <div className="container mx-auto px-6 max-w-7xl relative z-10">
           <motion.div
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: "-100px" }}
             variants={stagger}
-            className="mb-20 text-center"
+            className="mb-20"
           >
-            <motion.div variants={fadeUp} className="flex items-center justify-center gap-4 mb-4">
-              <div className="h-px bg-slate-800 flex-1 max-w-[100px]" />
-              <span className="text-slate-400 font-mono text-xs tracking-widest uppercase">The Process</span>
-              <div className="h-px bg-slate-800 flex-1 max-w-[100px]" />
-            </motion.div>
-            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4">
-              The Path to <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">Creation</span>
-            </motion.h2>
-            <motion.p variants={fadeUp} className="text-slate-400 text-lg max-w-2xl mx-auto">
-              A symphony of human imagination and computational power.
-            </motion.p>
+            <div className="flex flex-col md:flex-row items-end justify-between gap-8">
+              <div className="max-w-2xl">
+                <motion.div variants={fadeUp} className="flex items-center gap-4 mb-4">
+                  <span className="text-emerald-400 font-mono text-xs tracking-widest uppercase">The Process</span>
+                  <div className="h-px bg-white/10 flex-1 max-w-[100px]" />
+                </motion.div>
+                <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-serif font-bold tracking-tight text-white mb-4">
+                  The Path to Creation
+                </motion.h2>
+                <motion.p variants={fadeUp} className="text-white/60 text-lg">
+                  Bring your stories to life with our streamlined, professional platform. No technical barriers—just your imagination paired with our collaborative tools.
+                </motion.p>
+              </div>
+              <motion.div variants={fadeUp} className="flex-shrink-0">
+                <Button asChild className="rounded-full px-8 bg-white text-black hover:bg-white/90 font-medium">
+                  <Link href="/upload">Begin Formatting</Link>
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
 
-          {/* Interactive Split Layout */}
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 items-center justify-center">
+          {/* Bento Box Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 auto-rows-[minmax(300px,_auto)]">
 
-            {/* Left: Interactive Timeline Steps */}
-            <div className="w-full lg:w-1/2 space-y-6 relative">
-              {/* Connecting Line (Desktop) */}
-              <div className="hidden lg:block absolute left-[28px] top-8 bottom-8 w-px bg-white/5 z-0" />
+            {/* Bento Card 1: Large Feature */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="md:col-span-12 lg:col-span-7 bg-zinc-950 border border-white/10 rounded-3xl p-8 md:p-12 relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 group-hover:bg-indigo-500/20 transition-colors duration-700 pointer-events-none" />
 
-              {pathToCreation.map((item, index) => {
-                const isActive = activeStep === index;
-                return (
-                  <div
-                    key={item.id}
-                    onClick={() => setActiveStep(index)}
-                    className={cn(
-                      "relative z-10 p-6 md:p-8 rounded-3xl border transition-all duration-500 cursor-pointer group flex gap-6 overflow-hidden",
-                      isActive
-                        ? `bg-slate-900 border-white/20 shadow-2xl ${item.activeBg}`
-                        : "bg-transparent border-transparent hover:bg-white/[0.02]"
-                    )}
-                  >
-                    {/* Active highlight bar */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeIndicator"
-                        className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${item.color}`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      />
-                    )}
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-12">
+                  <PenSquare className="w-8 h-8 text-indigo-400" />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-serif font-bold text-white mb-4">Draft Your Manuscript</h3>
+                  <p className="text-lg text-white/50 max-w-lg leading-relaxed">
+                    Write freely in our professional Markdown editor or upload your existing documents directly. The canvas is yours to command with distraction-free tools.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-                    <div className={cn(
-                      "flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border transition-colors duration-500",
-                      isActive
-                        ? `bg-black ${item.activeBorder} ${item.iconColor} shadow-[0_0_20px_rgba(0,0,0,0.5)]`
-                        : "bg-zinc-900 border-white/5 text-slate-500 group-hover:text-slate-300"
-                    )}>
-                      {item.icon}
-                    </div>
+            {/* Bento Card 2: Medium Feature */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="md:col-span-6 lg:col-span-5 bg-white border border-white/10 rounded-3xl p-8 relative overflow-hidden group"
+            >
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center mb-12">
+                  <BookOpen className="w-8 h-8 text-black" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-serif font-bold text-black mb-4">Generate & Refine</h3>
+                  <p className="text-base text-black/70 leading-relaxed">
+                    Transform your raw text into beautifully structured lore automatically. Let our suite handle the formatting logic while you focus on the creative narrative.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-                    <div className="flex-1 pt-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="font-mono text-sm font-bold text-slate-500">{item.step}</span>
-                        <h3 className={cn("text-2xl font-bold transition-colors duration-300", isActive ? "text-white" : "text-slate-300 group-hover:text-white")}>
-                          {item.title}
-                        </h3>
-                      </div>
-                      <motion.div
-                        initial={false}
-                        animate={{ height: isActive ? 'auto' : 0, opacity: isActive ? 1 : 0 }}
-                        className="overflow-hidden"
-                      >
-                        <p className="text-slate-400 text-base leading-relaxed mt-2">{item.desc}</p>
-                      </motion.div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {/* Bento Card 3 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className="md:col-span-6 lg:col-span-4 bg-zinc-900 border border-white/10 rounded-3xl p-8 relative overflow-hidden group"
+            >
+              <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-emerald-500/10 to-transparent pointer-events-none" />
+              <div className="relative z-10 h-full flex flex-col justify-between">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-8">
+                  <Shield className="w-6 h-6 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-3">Blockchain Provenance</h3>
+                  <p className="text-sm text-white/50 leading-relaxed">
+                    Secure your intellectual property automatically. Every completed manuscript is permanently anchored to the blockchain, ensuring your authorship is undeniable.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
 
-            {/* Right: Dynamic Visualizer Container */}
-            <div className="w-full lg:w-1/2 aspect-square max-w-[500px] relative rounded-[2.5rem] bg-gradient-to-br from-slate-900/50 to-black border border-white/10 overflow-hidden flex items-center justify-center p-8 backdrop-blur-sm shadow-2xl">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={pathToCreation[activeStep]?.id}
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 1.1, filter: 'blur(10px)' }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="w-full h-full relative flex items-center justify-center"
-                >
-                  {/* Glowing background specific to active step */}
-                  <div className={cn("absolute inset-0 opacity-20 bg-gradient-to-tr rounded-full blur-3xl", pathToCreation[activeStep]?.color)} />
+            {/* Bento Card 4 */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="md:col-span-12 lg:col-span-8 bg-zinc-950 border border-white/10 rounded-3xl p-8 relative overflow-hidden flex flex-col md:flex-row items-center gap-8"
+            >
+              <div className="flex-1 relative z-10">
+                <h3 className="text-2xl font-serif font-bold text-white mb-4">Publish to the World</h3>
+                <p className="text-base text-white/50 leading-relaxed mb-6">
+                  Distribute your completed tales to our global marketplace instantly. Connect with readers, collectors, and fellow creators effortlessly.
+                </p>
+                <Button variant="link" asChild className="text-emerald-400 p-0 h-auto hover:text-emerald-300 font-medium group">
+                  <Link href="/community" className="flex items-center">
+                    Explore Community <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+              </div>
 
-                  {activeStep === 0 && (
-                    <motion.div
-                      animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                      className="relative z-10 w-48 h-48 rounded-3xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center backdrop-blur-md shadow-[0_0_50px_rgba(99,102,241,0.2)]"
-                    >
-                      <PenSquare className="w-20 h-20 text-indigo-400" />
-                      {/* Floating particles for The Spark */}
-                      <motion.div animate={{ y: [-20, -40], opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity, delay: 0 }} className="absolute top-4 right-4 w-2 h-2 bg-blue-400 rounded-full" />
-                      <motion.div animate={{ y: [-10, -50], opacity: [0, 1, 0] }} transition={{ duration: 2.5, repeat: Infinity, delay: 0.5 }} className="absolute bottom-8 left-8 w-1.5 h-1.5 bg-indigo-400 rounded-full" />
-                    </motion.div>
-                  )}
-
-                  {activeStep === 1 && (
-                    <div className="relative z-10">
-                      {/* Floating Pages */}
-                      <motion.div
-                        animate={{ y: [0, -10, 0], rotateZ: -5 }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute -inset-4 rounded-2xl bg-slate-800/80 border border-purple-500/20 backdrop-blur-sm"
-                      />
-                      <motion.div
-                        animate={{ y: [0, -15, 0], rotateZ: 5 }}
-                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                        className="absolute -inset-2 rounded-2xl bg-slate-800/90 border border-indigo-500/30 backdrop-blur-md"
-                      />
-                      <motion.div
-                        animate={{ y: [0, -5, 0] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                        className="relative w-48 h-56 rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 border border-white/20 flex flex-col items-center justify-center p-6 shadow-2xl"
-                      >
-                        <BookOpen className="w-16 h-16 text-purple-400 mb-6" />
-                        <div className="w-full space-y-3">
-                          <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                            <motion.div initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 2, repeat: Infinity }} className="h-full bg-purple-500" />
-                          </div>
-                          <div className="h-2 w-3/4 bg-white/10 rounded-full overflow-hidden">
-                            <motion.div initial={{ width: "0%" }} animate={{ width: "100%" }} transition={{ duration: 2, repeat: Infinity, delay: 0.3 }} className="h-full bg-indigo-500" />
-                          </div>
-                        </div>
-                      </motion.div>
-                    </div>
-                  )}
-
-                  {activeStep === 2 && (
-                    <motion.div
-                      animate={{ scale: [1, 1.05, 1] }}
-                      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                      className="relative z-10 w-48 h-48 rounded-full bg-black/50 border border-emerald-500/30 flex items-center justify-center backdrop-blur-lg shadow-[0_0_60px_rgba(16,185,129,0.3)]"
-                    >
-                      <Shield className="w-20 h-20 text-emerald-400" />
-                      {/* Orbiting ring */}
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-[-20px] rounded-full border border-dashed border-emerald-500/40"
-                      />
-                    </motion.div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
+              <div className="w-full md:w-1/2 h-full min-h-[200px] rounded-2xl border border-white/10 bg-[url('https://images.unsplash.com/photo-1455390582262-044cdead27d8?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center brightness-75 mix-blend-luminosity filter transition-all duration-700 hover:mix-blend-normal hover:brightness-100" />
+            </motion.div>
 
           </div>
         </div>
@@ -536,12 +496,13 @@ export default function Home() {
             <motion.p variants={fadeUp} className="text-white/50 text-lg md:text-xl font-medium max-w-2xl mx-auto mb-10">
               Join visionary creators crafting on the world's fastest decentralized network.
             </motion.p>
-            <motion.div variants={fadeUp}>
+            <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-4">
               <Button asChild className="h-16 px-10 rounded-full font-bold text-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95">
                 <Link href="/create/ai-story">
                   Start Your Story <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
+              <UploadStoryTrigger variant="outline" className="h-16 px-10 rounded-full font-bold text-lg" buttonText="Upload Existing Story" icon={false} />
             </motion.div>
           </motion.div>
         </div>

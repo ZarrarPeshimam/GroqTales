@@ -217,6 +217,86 @@ router.post('/create', authRequired, async (req, res) => {
 
 /**
  * @swagger
+ * /api/v1/stories/upload:
+ *   post:
+ *     tags:
+ *       - Stories
+ *     summary: Upload a manual user story
+ *     description: Creates a new user-uploaded story with rich metadata.
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               content:
+ *                 type: string
+ *               genre:
+ *                 type: string
+ *               twists:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               tags:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               coverImageUrl:
+ *                 type: string
+ *               imageUrls:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       201:
+ *         description: Story uploaded successfully.
+ */
+// POST /api/v1/stories/upload - Upload user story
+router.post('/upload', authRequired, async (req, res) => {
+  try {
+    const { title, description, content, genre, twists, tags, coverImageUrl, imageUrls } = req.body;
+
+    // Validate minimum requirements
+    if (!title || !content || !genre) {
+      return res.status(400).json({ error: 'Title, content, and genre are required.' });
+    }
+
+    const validTags = Array.isArray(tags) ? tags : [];
+    const validTwists = Array.isArray(twists) ? twists : [];
+    const validImageUrls = Array.isArray(imageUrls) ? imageUrls : [];
+
+    const story = new Story({
+      title: title.slice(0, 100),
+      description: description ? description.slice(0, 500) : '',
+      content,
+      genre,
+      twists: validTwists,
+      tags: validTags,
+      source: 'uploaded',
+      coverImageUrl: coverImageUrl || null,
+      imageUrls: validImageUrls,
+      author: req.user.id,
+      moderationStatus: 'pending',
+    });
+
+    await story.save();
+
+    return res.status(201).json({ success: true, data: story });
+  } catch (error) {
+    console.error('Story upload error:', error);
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * @swagger
  * /api/v1/stories/search/{id}:
  *   get:
  *     tags:

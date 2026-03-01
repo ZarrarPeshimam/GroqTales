@@ -154,7 +154,6 @@ const allowedOrigins = (process.env.CORS_ORIGIN || 'https://groqtales.xyz')
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
@@ -172,10 +171,14 @@ app.use(
   })
 );
 
+// Trust proxy for rate limiting behind Render/Cloudflare load balancers
+app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  skip: (req) => req.originalUrl.startsWith('/api/health'),
   message: {
     error: 'Too many requests from this IP, please try again later.',
   },
@@ -342,7 +345,8 @@ app.get(['/api/health', '/api/health/db'], (req, res) => {
  *                   example: helpbot
  */
 app.get('/api/health/bot', (req, res) => {
-  const botOnline = !!process.env.GROQ_API_KEY;
+  // If we have a proxy target (CF_WORKER_URL) or native GROQ key, the bot is healthy
+  const botOnline = !!process.env.CF_WORKER_URL || !!process.env.GROQ_API_KEY;
   res.json({
     status: botOnline ? 'healthy' : 'down',
     timestamp: new Date().toISOString(),
@@ -373,6 +377,7 @@ app.use('/api/v1/stories', require('./routes/stories'));
 app.use('/api/v1/comics', require('./routes/comics'));
 app.use('/api/v1/nft', require('./routes/nft'));
 app.use('/api/v1/users', require('./routes/users'));
+app.use('/api/v1/admin', require('./routes/admin'));
 app.use('/api/helpbot', require('./routes/helpbot'));
 app.use('/api/v1/helpbot', require('./routes/helpbot'));
 

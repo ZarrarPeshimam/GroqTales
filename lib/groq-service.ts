@@ -21,10 +21,14 @@ import {
 export interface StoryGenerationParams {
   genre?: string;
   theme: string;
-  length?: 'short' | 'medium' | 'long';
+  length?: 'short' | 'medium' | 'long' | 'flash' | 'epic';
   tone?: string;
   characters?: string;
   setting?: string;
+  
+  model?: string;
+  fallbackModel?: string; 
+  temperature?: number;
 }
 
 export interface StoryAnalysis {
@@ -48,74 +52,31 @@ export interface StoryRecommendation {
  * Available Groq models for different tasks
  */
 export const GROQ_MODELS = {
-  STORY_GENERATION: 'llama3-70b-8192',
-  STORY_ANALYSIS: 'llama3-8b-8192-analysis',
-  CONTENT_IMPROVEMENT: 'mixtral-8x7b-32768',
-  RECOMMENDATIONS: 'llama3-8b-8192-recommendations',
+  STORY_GENERATION: 'llama-3.3-70b-versatile',
+  STORY_ANALYSIS: 'llama-3.1-8b-instant',      
+  CONTENT_IMPROVEMENT: 'mixtral-8x7b-32768',   
+  RECOMMENDATIONS: 'llama-3.1-8b-instant',     
 } as const;
 
 /**
  * Generate story content using Groq AI
  */
+
 export async function generateStoryContent(
-  params: StoryGenerationParams
-): Promise<string> {
-  try {
-    // --- Cache: check for cached response ---
-    const cacheCategory: CacheCategory = 'STORY_GENERATION';
-    const cacheOptions = {
-      genre: params.genre,
-      length: params.length,
-      tone: params.tone,
-      characters: params.characters,
-      setting: params.setting,
-    };
-    const cached = await getCachedResponse<string>(cacheCategory, params.theme, cacheOptions);
-    if (cached) return cached;
+  params: StoryGenerationParams & { fallbackModel?: string }
+): Promise<{ content: string; actualModel: string; fallbackUsed: boolean }> {
+  const primaryModel = params.model || GROQ_MODELS.STORY_GENERATION;
+  const fallbackModel = params.fallbackModel; 
+  const selectedTemp = params.temperature ?? 0.8;
 
+  async function performRequest(targetModel: string): Promise<string> {
     const groqApiKey = process.env.GROQ_API_KEY;
-    if (!groqApiKey) {
-      throw new Error('GROQ_API_KEY environment variable is not set');
-    }
+    if (!groqApiKey) throw new Error('GROQ_API_KEY is not set');
 
-    // --- Security: sanitize & validate user inputs ---
     const sanitizedTheme = sanitizeInput(params.theme).sanitized;
-    const themeValidation = validateInput(sanitizedTheme);
-    if (!themeValidation.isValid) {
-      logSecurityEvent({
-        type: 'injection_attempt',
-        details: { field: 'theme', reason: themeValidation.reason, pattern: themeValidation.matchedPattern },
-      });
-      throw new Error(`Invalid input for theme: ${themeValidation.reason}`);
-    }
-
-    const sanitizedParams: StoryGenerationParams = {
-      ...params,
-      theme: sanitizedTheme,
-      genre: params.genre ? sanitizeInput(params.genre).sanitized : params.genre,
-      tone: params.tone ? sanitizeInput(params.tone).sanitized : params.tone,
-      characters: params.characters ? sanitizeInput(params.characters).sanitized : params.characters,
-      setting: params.setting ? sanitizeInput(params.setting).sanitized : params.setting,
-    };
-
-    // Validate optional fields
-    for (const [field, value] of Object.entries(sanitizedParams)) {
-      if (value && typeof value === 'string' && field !== 'length') {
-        const result = validateInput(value);
-        if (!result.isValid) {
-          logSecurityEvent({
-            type: 'injection_attempt',
-            details: { field, reason: result.reason, pattern: result.matchedPattern },
-          });
-          throw new Error(`Invalid input for ${field}: ${result.reason}`);
-        }
-      }
-    }
-
-    const prompt = buildStoryPrompt(sanitizedParams);
-
+    const prompt = buildStoryPrompt({ ...params, theme: sanitizedTheme });
     const systemPrompt = buildHardenedSystemPrompt(
-      'You are a creative writing assistant that generates engaging, well-structured stories based on user parameters. Focus on compelling narratives with strong character development and vivid descriptions.'
+      'You are a creative writing assistant that generates engaging, well-structured stories.'
     );
 
     const response = await fetch(
@@ -127,54 +88,70 @@ export async function generateStoryContent(
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: GROQ_MODELS.STORY_GENERATION,
+          model: targetModel,
           messages: [
-            {
-              role: 'system',
-              content: systemPrompt,
-            },
-            {
-              role: 'user',
-              content: wrapUserContent(prompt),
-            },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: wrapUserContent(prompt) },
           ],
           max_tokens: getMaxTokensForLength(params.length || 'medium'),
-          temperature: 0.8,
+          temperature: selectedTemp,
           top_p: 0.9,
         }),
       }
     );
 
     if (!response.ok) {
-      throw new Error(
-        `Groq API error: ${response.status} ${response.statusText}`
-      );
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Groq API error: ${response.status} ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
-    const generatedContent =
-      data.choices[0]?.message?.content || 'Failed to generate story content';
+    return data.choices[0]?.message?.content || 'Failed to generate story content';
+  }
 
-    // --- Security: validate output ---
-    const outputCheck = validateOutput(generatedContent);
-    if (!outputCheck.isSafe) {
-      logSecurityEvent({
-        type: 'output_flagged',
-        details: { flags: outputCheck.flags },
-      });
-      // Block content if it contains sensitive leaks
-      throw new Error('Generated content was blocked due to security policy violations.');
+  try {
+    
+    const cacheCategory: CacheCategory = 'STORY_GENERATION';
+    const cacheOptions = { ...params, model: primaryModel };
+    const cached = await getCachedResponse<string>(cacheCategory, params.theme, cacheOptions);
+    
+    if (cached) {
+      return { content: cached, actualModel: primaryModel, fallbackUsed: false };
     }
 
-    // --- Cache: store the response ---
-    await setCachedResponse(cacheCategory, params.theme, cacheOptions, generatedContent);
+    // Attempt 1: Primary Model
+    console.log(`Attempting primary model: ${primaryModel}`);
+    const content = await performRequest(primaryModel);
 
-    return generatedContent;
+    const outputCheck = validateOutput(content);
+    if (!outputCheck.isSafe) throw new Error('Unsafe output detected');
+
+    await setCachedResponse(cacheCategory, params.theme, cacheOptions, content);
+    
+    return { content, actualModel: primaryModel, fallbackUsed: false };
+
   } catch (error) {
-    console.error('Story generation error:', error);
-    throw error instanceof Error && error.message.startsWith('Invalid input')
-      ? error
-      : new Error('Failed to generate story content');
+    // Attempt 2: Automated Fallback if Primary fails
+    if (fallbackModel) {
+      console.warn(`Primary failed. Retrying with fallback: ${fallbackModel}`);
+      try {
+        const fallbackContent = await performRequest(fallbackModel);
+        
+        const outputCheck = validateOutput(fallbackContent);
+        if (!outputCheck.isSafe) throw new Error('Unsafe fallback output');
+
+        return { 
+          content: fallbackContent, 
+          actualModel: fallbackModel, 
+          fallbackUsed: true 
+        };
+      } catch (fallbackError) {
+        console.error('Both primary and fallback models failed.');
+        throw new Error('All available AI models are currently overloaded.');
+      }
+    }
+
+    throw error instanceof Error ? error : new Error('Story generation failed');
   }
 }
 
@@ -307,7 +284,6 @@ export async function generateStoryIdeas(
       throw new Error('GROQ_API_KEY environment variable is not set');
     }
 
-    // --- Security: sanitize & validate genre if provided ---
     let sanitizedGenre = genre;
     if (genre) {
       const { sanitized } = sanitizeInput(genre);
@@ -487,7 +463,6 @@ export async function improveStoryContent(
     const data = await response.json();
     const improvedContent = data.choices[0]?.message?.content || content;
 
-    // --- Security: validate output ---
     const outputCheck = validateOutput(improvedContent);
     if (!outputCheck.isSafe) {
       logSecurityEvent({
@@ -503,9 +478,6 @@ export async function improveStoryContent(
     return improvedContent;
   } catch (error) {
     console.error('Story improvement error:', error);
-    if (error instanceof Error && error.message.startsWith('Invalid input')) {
-      throw error;
-    }
     return content;
   }
 }
@@ -569,41 +541,23 @@ export async function getStoryRecommendations(
 
 function buildStoryPrompt(params: StoryGenerationParams): string {
   let prompt = `Write a ${params.length || 'medium'} story`;
-
-  if (params.genre) {
-    prompt += ` in the ${params.genre} genre`;
-  }
-
+  if (params.genre) prompt += ` in the ${params.genre} genre`;
   prompt += ` with the theme: "${params.theme}"`;
-
-  if (params.tone) {
-    prompt += `. The tone should be ${params.tone.toLowerCase()}`;
-  }
-
-  if (params.characters) {
-    prompt += `. Main characters: ${params.characters}`;
-  }
-
-  if (params.setting) {
-    prompt += `. Setting: ${params.setting}`;
-  }
-
-  prompt +=
-    '. Create an engaging narrative with strong character development, vivid descriptions, and a satisfying conclusion.';
-
+  if (params.tone) prompt += `. The tone should be ${params.tone.toLowerCase()}`;
+  if (params.characters) prompt += `. Main characters: ${params.characters}`;
+  if (params.setting) prompt += `. Setting: ${params.setting}`;
+  prompt += '. Create an engaging narrative with strong character development and a satisfying conclusion.';
   return prompt;
 }
 
-function getMaxTokensForLength(length: 'short' | 'medium' | 'long'): number {
+function getMaxTokensForLength(length: string): number {
   switch (length) {
-    case 'short':
-      return 500;
-    case 'medium':
-      return 1500;
-    case 'long':
-      return 3000;
-    default:
-      return 1500;
+    case 'flash': return 300; 
+    case 'short': return 600;
+    case 'medium': return 1500;
+    case 'long': return 3000;
+    case 'epic': return 5000; 
+    default: return 1500;
   }
 }
 
@@ -624,10 +578,8 @@ export async function testGroqConnection(): Promise<boolean> {
         'Content-Type': 'application/json',
       },
     });
-
     return response.ok;
   } catch (error) {
-    console.error('Groq connection test failed:', error);
     return false;
   }
 }
@@ -660,10 +612,8 @@ export async function testGroqSpecialModel(
         }),
       }
     );
-
     return response.ok;
   } catch (error) {
-    console.error('Groq special model test failed:', error);
     return false;
   }
 }

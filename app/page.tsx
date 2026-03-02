@@ -237,7 +237,7 @@ export default function Home() {
 
             <motion.div variants={fadeUp} className="flex flex-wrap gap-6 items-center justify-center pt-4">
               <Button asChild className="group relative overflow-hidden bg-white text-black hover:text-black h-16 px-10 rounded-full font-bold text-lg transition-all hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.2)]">
-                <Link href="/create/ai-story">
+                <Link href="/create">
                   <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-black/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
                   <span className="relative z-10 flex items-center">
                     Start Creating <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -387,7 +387,7 @@ export default function Home() {
             </motion.p>
             <motion.div variants={fadeUp}>
               <Button asChild className="h-16 px-10 rounded-full font-bold text-lg bg-emerald-500 hover:bg-emerald-400 text-black border border-emerald-400/50 shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all hover:scale-105 active:scale-95">
-                <Link href="/create/ai-story">
+                <Link href="/create">
                   Start Your Story <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>

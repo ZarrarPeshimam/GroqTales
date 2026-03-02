@@ -45,6 +45,7 @@ Migrated the entire backend database layer from MongoDB/Mongoose to **Supabase P
 - **Sign-Up Page** (`app/sign-up/page.tsx`) — CRM-style UI overhaul, multi-step layout modernized, added password strength validation, and password show/hide toggle.
 
 ### Fixed
+- **Render 429 Health Check Errors** — Moved `/api/health` routes above the global rate limiter in `server/backend.js` to prevent health check failures during instance deployment and monitoring.
 - **500 errors on all data endpoints** — Caused by MongoDB not being connected on Render
 - **401 errors on authenticated endpoints** — Frontend sends Supabase tokens but backend was verifying with custom JWT
 - **Missing Swagger parameters** — `/api/v1/users/profile` GET now shows auth parameters

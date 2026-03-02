@@ -482,10 +482,11 @@ app.use(compression());
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
+app.use(csrf());
 
-// Note: lusca CSRF middleware and dummy req.session have been removed here 
-// because this API relies on stateless JWT tokens via the Authorization header, 
-// meaning session-based CSRF checks are non-functional and unnecessary.
+// CSRF protection is enabled via lusca. The API primarily uses stateless JWT
+// tokens in the Authorization header, but cookies (if used by any handlers)
+// are protected against CSRF for defense-in-depth.
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Logging middleware (after request parsing)

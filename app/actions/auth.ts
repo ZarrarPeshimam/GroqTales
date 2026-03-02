@@ -1,6 +1,4 @@
-'use server'
-
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 
 export async function loginWithUsernameOrEmail(identifier: string, password: string) {
     const supabase = createClient();
@@ -23,7 +21,7 @@ export async function loginWithUsernameOrEmail(identifier: string, password: str
             loginEmail = data.email;
         }
 
-        // Perform the sign in securely on the server
+        // Perform the sign in securely
         const { error } = await supabase.auth.signInWithPassword({
             email: loginEmail,
             password,

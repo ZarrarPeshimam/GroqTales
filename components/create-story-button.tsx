@@ -23,12 +23,13 @@ export function CreateStoryButton() {
 
   const handleOpen = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const isServerAdmin = session?.user?.user_metadata?.role === 'admin';
       
-      if (!session && !isServerAdmin) {
+      if (!session) {
           router.push('/sign-in');
           return;
       }
+      
+      const isServerAdmin = session?.user?.user_metadata?.role === 'admin';
       setOpen(true);
   };
 

@@ -35,13 +35,22 @@ export default function UploadPage() {
             const { data: { session } } = await supabase.auth.getSession();
             const isServerAdmin = session?.user?.user_metadata?.role === 'admin';
 
-            if (!session && !isServerAdmin) {
-                toast({
-                    title: 'Access Denied',
-                    description: 'Please log in to upload stories.',
-                    variant: 'destructive',
-                });
-                router.push('/sign-in');
+            if (!session || !isServerAdmin) {
+                if (!session) {
+                    toast({
+                        title: 'Access Denied',
+                        description: 'Please log in to upload stories.',
+                        variant: 'destructive',
+                    });
+                    router.push('/sign-in');
+                } else {
+                    toast({
+                        title: 'Unauthorized',
+                        description: 'You do not have permission to access the upload page.',
+                        variant: 'destructive',
+                    });
+                    router.push('/');
+                }
             }
         };
 

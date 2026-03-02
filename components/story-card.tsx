@@ -75,7 +75,7 @@ export const StoryCard = memo(function StoryCard({
 
   const handleCreateSimilar = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    const isServerAdmin = session?.user?.user_metadata?.role === 'admin';
+    const isServerAdmin = session?.user?.app_metadata?.role === 'admin';
     
     // Check if they are authenticated or possess admin privileges
     if (!session && !isAdmin && !isServerAdmin) {

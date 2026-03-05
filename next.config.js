@@ -238,9 +238,10 @@ const nextConfig = {
   }),
 
   // Output configuration
-  // 'export' = static HTML/JS/CSS for Cloudflare Pages (no server needed)
+  // 'export' = static HTML/JS/CSS (no dynamic routes allowed)
   // 'standalone' = self-contained Node.js server for Render
-  output: isCfBuild ? 'export' : (process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined),
+  // undefined = let @cloudflare/next-on-pages handle dynamic routes via functions
+  output: isCfBuild ? undefined : (process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined),
 
   // Experimental features
   experimental: {

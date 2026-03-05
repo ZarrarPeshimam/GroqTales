@@ -27,13 +27,13 @@ const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:3000',
   'http://localhost:3001',
-  'https://groqtales-backend-api.vercel.app',
   'https://groqtales-backend-api.onrender.com',
   'https://groqtales.vercel.app',
+  'https://groqtales-git-main-indie-hub25s-projects.vercel.app',
   'https://www.groqtales.xyz',
-  `https://groqtales.pages.dev/`,
-  'https://groqtales.netlify.app/',
   'https://groqtales.xyz',
+  'https://groqtales.pages.dev',
+  'https://groqtales.netlify.app',
 ].filter(Boolean);
 
 app.use(
@@ -41,9 +41,25 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (Swagger UI, curl, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      
+      // Check if origin matches any allowed origin
+      const isAllowed = allowedOrigins.some(allowed => {
+        // Exact match
+        if (origin === allowed) return true;
+        // Starts with match (for subdomains)
+        if (origin.startsWith(allowed)) return true;
+        // Check for Vercel preview deployments
+        if (origin.includes('vercel.app')) return true;
+        // Check for Cloudflare Pages preview deployments
+        if (origin.includes('pages.dev')) return true;
+        return false;
+      });
+      
+      if (isAllowed) {
         return callback(null, true);
       }
+      
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,

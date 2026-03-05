@@ -278,8 +278,11 @@ const allowedOrigins = [
   'http://localhost:3001',
   'https://groqtales-backend-api.onrender.com',
   'https://groqtales.vercel.app',
+  'https://groqtales-git-main-indie-hub25s-projects.vercel.app',
   'https://www.groqtales.xyz',
   'https://groqtales.xyz',
+  'https://groqtales.pages.dev',
+  'https://groqtales.netlify.app',
 ].filter(Boolean);
 
 app.use(
@@ -287,9 +290,25 @@ app.use(
     origin: (origin, callback) => {
       // Allow requests with no origin (Swagger UI, curl, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      
+      // Check if origin matches any allowed origin
+      const isAllowed = allowedOrigins.some(allowed => {
+        // Exact match
+        if (origin === allowed) return true;
+        // Starts with match (for subdomains)
+        if (origin.startsWith(allowed)) return true;
+        // Check for Vercel preview deployments
+        if (origin.includes('vercel.app')) return true;
+        // Check for Cloudflare Pages preview deployments
+        if (origin.includes('pages.dev')) return true;
+        return false;
+      });
+      
+      if (isAllowed) {
         return callback(null, true);
       }
+      
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
@@ -300,6 +319,7 @@ app.use(
       'X-API-Key',
       'X-Request-ID',
     ],
+    exposedHeaders: ['RateLimit-Limit', 'RateLimit-Remaining', 'RateLimit-Reset'],
   })
 );
 
@@ -471,10 +491,10 @@ app.get('/', (req, res) => {
 });
 
 
-// Rate limiting
+// Rate limiting - increased limits for production use
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1000, // Increased from 100 to 1000 requests per window
   skip: (req) => {
     const path = req.originalUrl;
     // Never rate limit liveness/readiness probes or the root welcome page
@@ -483,6 +503,8 @@ const limiter = rateLimit({
   message: {
     error: 'Too many requests from this IP, please try again later.',
   },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use('/api/', limiter);
 

@@ -9,6 +9,13 @@ const { supabaseAdmin } = require('../config/supabase');
 const { authRequired } = require('../middleware/auth');
 const groqService = require('../services/groqService');
 const { normalizeParam } = require('../utils/paramNormalizer');
+const multer = require('multer');
+
+// Configure multer for file uploads
+const fileUploadOptions = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 /**
  * @swagger
@@ -520,7 +527,6 @@ router.patch('/:id/moderate', authRequired, async (req, res) => {
   }
 });
 
-const multer = require('multer');
 let pdfParse;
 let mammoth;
 try {
@@ -529,11 +535,6 @@ try {
 } catch (e) {
   console.warn("pdf-parse or mammoth not installed locally.");
 }
-
-const fileUploadOptions = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
-});
 
 /**
  * @swagger

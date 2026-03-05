@@ -20,12 +20,43 @@ app.get('/healthz', (req, res) => {
 
 // Security and middleware
 app.use(helmet());
+
+// CORS configuration — allow multiple origins
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://groqtales-backend-api.vercel.app',
+  'https://groqtales-backend-api.onrender.com',
+  'https://groqtales.vercel.app',
+  'https://www.groqtales.xyz',
+  `https://groqtales.pages.dev/`,
+  'https://groqtales.netlify.app/',
+  'https://groqtales.xyz',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || 'https://groqtales.xyz',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (Swagger UI, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-API-Key',
+      'X-Request-ID',
+    ],
   })
 );
+
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 

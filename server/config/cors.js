@@ -16,6 +16,8 @@ const allowedOrigins = [
   'https://groqtales-git-main-indie-hub25s-projects.vercel.app',
   'https://www.groqtales.xyz',
   'https://groqtales.xyz',
+  'https://www.comiccrafts.xyz',
+  'https://comiccrafts.xyz',
   'https://groqtales.pages.dev',
   'https://groqtales.netlify.app',
 ].filter(Boolean); // Remove undefined/null entries from env vars
@@ -47,16 +49,16 @@ function corsOriginCallback(origin, callback) {
   // Check for exact match with allowed origins
   const isAllowed = allowedOrigins.some(allowed => {
     const normalizedAllowed = normalizeOrigin(allowed);
-    
+
     // Exact match (after normalization)
     if (normalizedIncomingOrigin === normalizedAllowed) return true;
-    
+
     // Check for Vercel preview deployments (allow all *.vercel.app)
     if (origin.includes('vercel.app')) return true;
-    
+
     // Check for Cloudflare Pages preview deployments (allow all *.pages.dev)
     if (origin.includes('pages.dev')) return true;
-    
+
     return false;
   });
 

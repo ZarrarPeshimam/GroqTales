@@ -502,6 +502,133 @@ Thanks to these amazing people for making GroqTales better!
 - **System Diagrams:** [ARCHITECTURE.md#diagrams](docs/ARCHITECTURE.md#system-diagrams) - Mermaid
   flowcharts and architecture diagrams
 
+### VedaScript Engine Parameters
+
+The VedaScript Engine exposes **71 tunable parameters** across **10 categories**, defined in [`lib/ai-story-parameters.ts`](lib/ai-story-parameters.ts). Each parameter has a UI control type (slider, select, toggle, multiselect, text, or textarea), a default value, and contextual help text.
+
+#### Character Development (11 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `characterCount` | slider | 3 | Number of main characters (1–10) |
+| `characterDepth` | slider | 5 | How deeply characters are developed (1–10) |
+| `protagonistArchetype` | select | hero | Main character archetype (hero, antihero, reluctant-hero, byronic, everyman) |
+| `antagonistPresence` | slider | 5 | How prominent the antagonist is (0–10) |
+| `sideCharacterCount` | slider | 2 | Number of side characters (0–8) |
+| `characterDiversity` | slider | 5 | Diversity of character backgrounds (1–10) |
+| `relationshipComplexity` | slider | 5 | Complexity of interpersonal relationships (1–10) |
+| `characterMotivationClarity` | slider | 7 | How clear character motivations are (1–10) |
+| `characterVoiceDistinctness` | slider | 5 | Distinctness of each character's voice (1–10) |
+| `characterFlaws` | slider | 5 | How prominent character flaws are (0–10) |
+| `characterGrowth` | slider | 5 | Extent of character arcs (0–10) |
+
+#### Plot Structure (12 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `plotComplexity` | slider | 5 | Overall plot complexity (1–10) |
+| `pacingSpeed` | slider | 5 | Story pacing speed (1=slow, 10=breakneck) |
+| `cliffhangerFrequency` | slider | 3 | How often cliffhangers appear (0–10) |
+| `plotStructureType` | select | three-act | Story structure (three-act, hero-journey, in-medias-res, circular, nonlinear) |
+| `twistCount` | slider | 1 | Number of major plot twists (0–5) |
+| `conflictType` | select | person-vs-person | Primary conflict type |
+| `resolutionType` | select | resolved | Ending resolution style |
+| `flashbackUsage` | slider | 2 | How frequently flashbacks are used (0–10) |
+| `foreshadowingLevel` | slider | 4 | Intensity of foreshadowing (0–10) |
+| `chapterRole` | select | advance-plot | Primary purpose of each chapter |
+| `hookStrength` | slider | 7 | Strength of opening hook per chapter (1–10) |
+| `endingType` | select | satisfying | Overall ending type |
+
+#### Worldbuilding (9 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `settingDetail` | slider | 5 | How much world detail to include (1–10) |
+| `settingType` | select | urban | Primary setting type |
+| `worldMagicSystem` | select | none | Magic/power system type |
+| `technologyLevel` | select | modern | Technology level |
+| `worldHistoryDepth` | slider | 3 | Depth of world history/lore (0–10) |
+| `politicsComplexity` | slider | 2 | Political complexities (0–10) |
+| `economicSystem` | select | market | Economic system type |
+| `culturalDiversity` | slider | 5 | Cultural diversity in the world (1–10) |
+| `atmosphere` | select | neutral | General atmosphere of the world |
+
+#### Tone & Style (8 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `narrativeVoice` | select | third-limited | Point-of-view voice style |
+| `proseStyle` | select | literary | Writing style |
+| `dialogueLevel` | slider | 5 | Proportion of dialogue vs narration (0–10) |
+| `dialogueNaturalism` | slider | 6 | How natural/realistic dialogue sounds (1–10) |
+| `humorLevel` | slider | 3 | Amount of humor in the story (0–10) |
+| `humorStyle` | select | witty | Style of humor when used |
+| `darknessLevel` | slider | 4 | How dark/grim the tone is (0–10) |
+| `sentimentTone` | select | balanced | Overall emotional tone |
+
+#### Technical Parameters (7 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `targetWordCount` | slider | 3000 | Target word count (500–50,000) |
+| `readingLevel` | select | adult | Target reading level |
+| `pointOfView` | select | third-person | Narrative POV |
+| `verbTense` | select | past | Primary verb tense |
+| `chapterStructure` | select | traditional | Chapter layout structure |
+| `descriptionIntensity` | slider | 5 | Density of descriptive passages (1–10) |
+| `narrativeTimeSpan` | select | weeks | Time covered by the story |
+
+#### Thematic Elements (5 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `themeDepth` | slider | 5 | How deeply themes are explored (1–10) |
+| `themeSubtlety` | slider | 5 | How subtly themes are woven in (1–10) |
+| `symbolismLevel` | slider | 3 | Amount of symbolism (0–10) |
+| `metaphorDensity` | slider | 3 | Density of metaphors (0–10) |
+| `moralComplexity` | slider | 5 | Moral ambiguity in the story (1–10) |
+
+#### Sensory & Immersion (5 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `sensoryDetail` | slider | 5 | Sensory descriptions (sight, sound, etc.) (1–10) |
+| `actionDescription` | slider | 5 | Detail level of action scenes (1–10) |
+| `emotionalDepth` | slider | 5 | Emotional intensity (1–10) |
+| `tensionCurve` | select | rising | Tension progression pattern |
+| `immersionLevel` | slider | 6 | Overall immersion quality (1–10) |
+
+#### Audience (4 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `ageRating` | select | teen | Target age rating |
+| `contentWarnings` | multiselect | [] | Content warnings to flag |
+| `genderRepresentation` | slider | 5 | Gender balance in cast (1–10) |
+| `culturalSensitivity` | slider | 7 | Level of cultural sensitivity (1–10) |
+
+#### Advanced Options (6 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `creativityLevel` | slider | 5 | AI creative freedom (1=conservative, 10=wild) |
+| `coherenceStrictness` | slider | 7 | How strictly coherence is enforced (1–10) |
+| `randomizationSeed` | text | — | Seed for reproducible generation |
+| `modelTemperature` | slider | 0.7 | LLM temperature (0.0–2.0, step 0.1) |
+| `detailLevel` | slider | 5 | Overall detail density (1–10) |
+| `guardrailsStrictness` | slider | 8 | Safety guardrail level (1–10) |
+
+#### Special Effects (4 parameters)
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `specialNarrativeDevice` | select | none | Special storytelling device (unreliable narrator, epistolary, etc.) |
+| `easterEggs` | toggle | false | Include hidden references |
+| `crossReferences` | toggle | false | Reference other stories/works |
+| `genreBlending` | slider | 0 | How much to blend secondary genres (0–10) |
+
+> **Source file:** [`lib/ai-story-parameters.ts`](lib/ai-story-parameters.ts) — full parameter definitions with Zod validation, preset configurations, and search utilities.
+
 ### Development Resources
 
 - **Setup Guide:**
@@ -538,13 +665,6 @@ For vulnerabilities or security-related issues, please refer to [SECURITY.md](SE
 _GroqTales currently operates on Monad Testnet for NFT minting. Mainnet support coming soon—stay
 tuned!_
 
----
-
-<h2 align="center">Active At</h2>
-
-<p align="center">
-  <img src="public/OSCG26%20Label.jpg%20(1).jpeg" alt="OSCG'26 — Open Source Community Gathering 2026" width="600" />
-</p>
 
 ---
 

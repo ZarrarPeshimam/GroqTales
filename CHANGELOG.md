@@ -7,9 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Supported Versions
 
-Active full support: 1.3.104 (latest). Security maintenance (critical fixes only): 1.1.0. All versions < 1.1.0 are End of Security Support (EoSS). See `SECURITY.md` for the evolving support policy.
+Active full support: 1.3.105 (latest). Security maintenance (critical fixes only): 1.1.0. All versions < 1.1.0 are End of Security Support (EoSS). See `SECURITY.md` for the evolving support policy.
 
 ## [1.3.105] - 2026-03-07
+
+### Added
+- **Shakti Spark Page** (`app/create/spark/page.tsx`) [NEW]: Dedicated short-story/idea-seed generator with prompt textarea, genre pill selector, mood pills (Epic/Dark/Whimsical/Tense/Hopeful/Mysterious), "Spark it" CTA, and glass output card. Actions: Save as Draft, Open in VedaScript Engine, Copy idea. Generates via `/api/groq` with `format: 'short'`.
+- **README VedaScript Parameter Documentation**: Added comprehensive "VedaScript Engine Parameters" section documenting all 71 UI parameters across 10 categories (Character Development, Plot Structure, Worldbuilding, Tone & Style, Technical, Thematic, Sensory & Immersion, Audience, Advanced, Special Effects) with key, label, type, default, and description.
+
+### Changed
+- **Forge Root Redesign** (`app/create/page.tsx`): Replaced tab-based engine selection with a 2×2 glassmorphism engine card grid. Each engine (VedaScript, Panelra, Mythloom, Shakti Spark) has distinct color, icon, subtitle, description, and CTA. Mythloom shows "Coming Soon". Cards feature hover scale, glow, and press animations via Framer Motion.
+- **VedaScript Engine Redesign** (`app/create/ai-story/page.tsx`): Complete rewrite of the 3-column studio layout:
+  - **Top Bar**: Sticky header with engine branding, story title context, Save Draft, Export, and Back to Forge actions.
+  - **Left Column**: Chapter-centric canvas with Add Chapter / Delete Chapter controls, replacing generic act-based nodes.
+  - **Middle Column**: Story Details form (title, genre pills, description, characters, setting) + VedaScript Parameters panel with Reset/Apply sticky footer.
+  - **Right Column**: Tabbed editor (Current Chapter / Compiled Story) with live word count and chapter stats, "Generate with VedaScript" primary CTA, and generation progress overlay.
+  - Removed "ComicCraft Story Studio" branding; renamed to "VedaScript Engine."
+- **AI Story Generator** (`components/ai-story-generator.tsx`): Simplified from 3-tab (Input/Preview/Mint) to 2-tab (Input/Preview) layout. Replaced mock story generation with actual `/api/groq` API call. Added copy-to-clipboard. Removed all blockchain/wallet imports.
+- **Canvas Nodes**: Canvas now creates chapter nodes (`ch-1`, `ch-2`, ...) instead of act nodes, aligning with the chapter-centric VedaScript workflow.
+
+### Removed
+- **Mint NFT from AI Story Generator**: Removed `handleMintNFT` function (110+ lines), mint status tracking, wallet connection logic, content hash generation, session lock, OpenSea URL generation, and the "Mint NFT" tab from `components/ai-story-generator.tsx`. Minting actions are deferred to the Storymint Gateway / Bazaar.
+- **Long-form story formats**: Removed `novella`, `novel`, and `comic` from `storyFormats` array in AI Story Generator. Shakti Spark is now explicitly short-story/idea-seed only.
+- **Web3 import from AI Story Generator**: Removed `useWeb3` hook import and `connected`/`account`/`connectWallet` references.
+- **story-hash import**: Removed `generateContentHash` import (no longer needed without minting).
+
+## [1.3.104] - 2026-03-07
+
+### Added
+- **AI Story Studio Implementation** (`app/create/ai-story`): fully orchestrated sequential, multi-panel story creation feature combining Groq (for parameter processing) and Gemini (for prose generation).
+- **Core Services** (`lib/services/`): implemented `panel-lifecycle-manager.ts`, `story-memory-manager.ts`, and `ai-orchestration-service.ts` to manage story constraints, character memory, and model interplay.
+- **Data Models & Parameters** (`lib/types/`, `lib/ai-story-parameters.ts`): defined full TypeScript schemas (`StorySession`, `PanelData`) and 70+ AI story generation parameters, categorized comprehensively.
+- **UI Components** (`app/create/ai-story/components/`): built modular UI for story tracking including `panel-progress-tracker`, `genre-lock-indicator`, `story-memory-display`, `story-output-display`, and `panel-creation-form`.
+- **Testing Suites** (`__tests__/utils/`): generated property-based and unit tests for genre management and story memory features ensuring logic consistency.
+
+### Changed
+- **Backend API Client** (`lib/api-client.ts`): added new robust methods (`createStory`, `saveDraft`, `processAI`) for integration with the new AI Story Studio endpoints.
+- **AI Story Studio Layout** (`app/create/ai-story/page.tsx`): radically expanded the multi-panel workflow supporting compose/read views, session persistence, and genre locking.
+
+## 2026-03-07
+
+### Changed
+- **Rebranding - Comicraft**: Executed platform-wide rebrand from "GroqTales" to "Comicraft" unifying the experience.
+- **Brand Positioning**: Updated hero tagline to "AI-native comics, stories, and collectibles on Monad."
+- **Navigation Structure**: Renamed main overarching navigation to Prime (Home), Worlds (Genres), Forge (Create), Bazaar (Marketplace), Commons (Community), and Atlas (Docs).
+- **Creator Engines**: Remapped the story creation engines in the Forge flow to VedaScript Engine, Panelra Engine, Mythloom Engine, and Shakti Spark.
+- **Microcopy**: Replaced generic terms with cohesive identity vocabulary throughout the landing page, UI navigation, and footer components.
+
+## 2026-03-07
+
+### Added
+- **CRAFTS Token Contract** (`smart_contracts/contracts/CraftToken.sol`): ERC-20 ComicCraft Tokens (CRAFTS) with owner-minted supply, burnable by holders, 1M initial supply. Deployed via `03-deploy-CraftToken.js`.
+- **CRAFTS Marketplace Contract** (`smart_contracts/contracts/CraftsMarketplace.sol`): Full NFT marketplace settling in CRAFTS tokens instead of native ETH. Supports list, buy, cancel, update listings with configurable platform fees (basis points), creator royalties (up to 50%), and pull-payment proceeds withdrawal. Follows CEI (Checks-Effects-Interactions) pattern with ReentrancyGuard.
+- **Web3 Service Layer** (`server/services/web3Service.js`): Core Monad testnet provider/signer management via Alchemy RPC. Includes gas estimation with 20% buffer, transaction sending with error mapping (insufficient funds → `INSUFFICIENT_FUNDS`, nonce conflicts, reverts, timeouts), and `checkWeb3Health()` returning chain ID, block height, and signer status.
+- **Token Service** (`server/services/tokenService.js`): CRAFTS balance reads, server-initiated transfers via platform signer, ERC-20 approval management, and token metadata queries.
+- **NFT Contract Service** (`server/services/nftContractService.js`): On-chain MonadStoryNFT minting with event parsing (StoryMinted + Transfer fallback), ownership lookups, metadata URI queries, and marketplace approval helpers.
+- **Wallet Routes** (`server/routes/wallets.js`): `/api/v1/wallets` — POST create managed wallet, GET `/me` with on-chain CRAFTS + MON balances, GET `/:userId/balance` public lookup, POST `/transfer` with business-rule gating (10K CRAFTS max on testnet).
+- **Marketplace Routes** (`server/routes/marketplace.js`): `/api/v1/marketplace` — GET browse with price range/genre/sort filters + pagination, GET `/pricing` (fee model, royalty info), POST `/list`, POST `/buy` (prevents self-purchase), POST `/cancel` (seller-only), GET `/history/:userId`.
+- **Web3 Health Endpoint**: `GET /api/health/web3` — returns Monad testnet connectivity, chain ID, block height, and platform signer status.
+- **Deploy Scripts**: `03-deploy-CraftToken.js`, `04-deploy-CraftsMarketplace.js` for Hardhat deployment with tag dependencies.
+- **Test Suites**: 4 new test files with 50+ assertions:
+  - `__tests__/services/web3Service.test.js` — provider/signer init, health checks, error mapping
+  - `__tests__/services/tokenService.test.js` — balance, transfer, approval, metadata
+  - `__tests__/routes/wallets.test.js` — wallet CRUD, transfer validation, auth enforcement
+  - `__tests__/routes/marketplace.test.js` — browse, list, buy, cancel, history
+- **Architecture Doc** (`docs/WEB3_ARCHITECTURE.md`): Mermaid diagrams, contract flow, env var reference, mainnet migration notes.
+- **API Reference** (`docs/API_WEB3_REFERENCE.md`): Full endpoint docs for wallets, marketplace, NFT, and Web3 health routes.
+
+### Changed
+- **CORS** (`server/config/cors.js`): Added `https://www.comiccrafts.xyz` and `https://comiccrafts.xyz` to allowed origins.
+- **Swagger Config** (`server/backend.js`): Added `Wallets` and `Marketplace` tags. Updated welcome endpoint with wallet and marketplace descriptions.
+- **Route Mounts** (`server/backend.js`): Wired `/api/v1/wallets` and `/api/v1/marketplace` routes.
+- **Environment Variables** (`.env.example`): Added `MONAD_RPC_URL`, `MONAD_CHAIN_ID`, `ALCHEMY_API_KEY`, `PLATFORM_SIGNER_KEY`, `PLATFORM_TREASURY_ADDRESS`, `PLATFORM_FEE_PERCENT`, `CRAFTS_TOKEN_ADDRESS`, `STORY_NFT_CONTRACT_ADDRESS`, `CRAFTS_MARKETPLACE_ADDRESS`.
+
+### Fixed
+- **Hardhat Config** (`smart_contracts/hardhat.config.js`): Removed duplicate `MONADSCAN_API_KEY` declaration that caused a build error.
+
+### Technical Details
+- **Chain Target**: Monad testnet (Chain ID 10143) via Alchemy RPC
+- **Token Standard**: ERC-20 (CRAFTS) with OpenZeppelin ERC20 + ERC20Burnable + Ownable
+- **Marketplace Standard**: ERC-721 support with SafeERC20 transfers, ReentrancyGuard, Ownable
+- **Error Handling**: Mapped error codes: `INSUFFICIENT_FUNDS`, `NONCE_CONFLICT`, `EXECUTION_REVERTED`, `RPC_TIMEOUT`, `RPC_UNREACHABLE`, `WEB3_ERROR`
+- **Security**: Platform signer key stays server-side; no secrets in client payloads; all env-var driven
+
+## 2026-03-07
 
 ### Added
 - **Story Creation UI Overhaul - Complete Implementation**: Redesigned all three story creation routes with professional canvas-based interfaces and guided tours.
@@ -64,7 +145,7 @@ Active full support: 1.3.104 (latest). Security maintenance (critical fixes only
 - **Feature Matrix**: All features (canvas, guided tours, auto-save, parameter system, responsive design, dark theme, professional styling) complete and verified functional.
 - **Testing Evidence**: Canvas interactions, parameter system, data persistence, guided tours, responsive design, and build compilation all verified successful.
 
-## [1.3.104] - 2026-03-06
+## 2026-03-06
 
 ### Added
 - **Gemini API Service**: Introduced `/server/services/geminiService.js` implementing Google Gemini 2.0 wrapper with token budgets, retry logic, streaming support, and safety classification.

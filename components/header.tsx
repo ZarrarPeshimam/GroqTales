@@ -112,11 +112,12 @@ export function Header() {
   };
 
   const navItems: NavItem[] = [
-    { type: 'link', href: '/genres', label: 'Genres' },
-    { type: 'link', href: '/community', label: 'Community Hub' },
-    { type: 'link', href: '/gallery', label: 'Gallery' },
-    { type: 'link', href: '/marketplace', label: 'Marketplace' },
-    { type: 'link', href: '/blog', label: 'Blogs' },
+    { type: 'link', href: '/', label: 'Prime' },
+    { type: 'link', href: '/genres', label: 'Worlds' },
+    { type: 'link', href: '/create', label: 'Forge' },
+    { type: 'link', href: '/marketplace', label: 'Bazaar' },
+    { type: 'link', href: '/community', label: 'Commons' },
+    { type: 'link', href: '/docs', label: 'Atlas' },
     ...(account
       ? [
         {
@@ -143,7 +144,7 @@ export function Header() {
         <div className="flex items-center">
           <Link
             href="/"
-            aria-label="GroqTales home"
+            aria-label="Comicraft Prime"
             className="flex items-center space-x-2 mr-2 sm:mr-6 group relative"
           >
             <motion.div
@@ -153,7 +154,7 @@ export function Header() {
             >
               <Image
                 src="/logo.png"
-                alt="GroqTales Logo"
+                alt="Comicraft Logo"
                 fill
                 sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-contain drop-shadow-lg"
@@ -161,7 +162,7 @@ export function Header() {
               />
             </motion.div>
             <span className="hidden sm:block font-bold text-xl sm:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400 tracking-tight">
-              GROQTALES
+              COMICRAFT
             </span>
           </Link>
 
@@ -279,7 +280,7 @@ export function Header() {
                         className="object-contain"
                       />
                     </div>
-                    GroqTales
+                    Comicraft
                   </SheetTitle>
                 </SheetHeader>
                 <div className="flex flex-col p-4 space-y-2">
